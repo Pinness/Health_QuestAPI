@@ -1,14 +1,10 @@
-from flask import Flask, request, jsonify
-from flask_restful import Resource, Api
+from flask import request
+from flask_restful import Resource
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import User  # Assuming User model is defined in models.py
-#from database import db  # Assuming the database connection is in database.py
+from models import User, db  # Import User and db from models
 
-app = Flask(__name__)
-api = Api(app)
 
-# Assuming JWT setup is already done in the app (e.g., JWTManager initialized)
 
 class UserResource(Resource):
     """
@@ -20,14 +16,10 @@ class UserResource(Resource):
     - User account deletion
     """
 
-    def register_new(self):
+
+    def post(self):
         """
-        Register a new user.
-        Expected input (JSON):
-        {
-            "username": "string",
-            "password": "string"
-        }
+        Register a new user (handles POST method).
         """
         data = request.get_json()
         username = data.get('username')
@@ -41,7 +33,7 @@ class UserResource(Resource):
         if User.query.filter_by(username=username).first():
             return {"message": "User already exists"}, 400
 
-        # Hash the password for security
+        # Hash the password
         hashed_password = generate_password_hash(password)
         new_user = User(username=username, password=hashed_password)
 
@@ -53,6 +45,10 @@ class UserResource(Resource):
         except Exception as e:
             db.session.rollback()
             return {"message": "An error occurred during registration"}, 500
+
+
+
+
 
     def login(self):
         """
@@ -159,12 +155,15 @@ class UserResource(Resource):
         except Exception as e:
             db.session.rollback()
             return {"message": "An error occurred while deleting"}, 500
-
+#jwt = JWTManager(app)  # Initialize JWT Manager
 
 # Adding routes for the UserResource
-api.add_resource(UserResource, '/api/users', '/api/users/<int:user_id>', endpoint="user")
-api.add_resource(UserResource, '/api/login', endpoint="login")    # New route for login
+#api.add_resource(UserResource, '/api/users', '/api/users/<int:user_id>', endpoint="user")
 
-if __name__ == "__main__":
-    app.run(debug=True)
+# Register resource to handle POST requests
+#api.add_resource(UserResource, '/api/users', methods=['POST'])
+
+#api.add_resource(UserResource, '/api/login', endpoint="login")    # New route for login
+
+
 
